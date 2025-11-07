@@ -245,7 +245,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player
   health: 100
   healthBar: {fileID: 0}
-  moveSpeed: 10
+  moveSpeed: 0.2
 --- !u!212 &1740699015
 SpriteRenderer:
   m_ObjectHideFlags: 0
