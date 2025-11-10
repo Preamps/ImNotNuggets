@@ -14,17 +14,36 @@ public class Player : Character
         healthBar.UpdateHealthBar(Health); // แสดง UI เฉพาะ Player
     }
 
-    
+    public SpriteRenderer spriteRenderer; // ใส่ sprite player
+    public Sprite rightSprite;
+    public Sprite leftSprite;
+
+
     void Start()
     {
         Init(100);
         //healthBar.SetMaxHealth(Health);
+
+        // Setup default sprite
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Update()
     {
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
+
+
+        // ทิศทางการหันของตัวละคร
+        if (movement.x > 0)
+        {
+            spriteRenderer.sprite = rightSprite;
+        }
+        else if (movement.x < 0)
+        {
+            spriteRenderer.sprite = leftSprite;
+        }
     }
     private void FixedUpdate()
     {
