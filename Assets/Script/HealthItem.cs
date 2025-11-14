@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class HealthItem : MonoBehaviour
 {
-    [Header("Heal Settings")]
+   
     public int healAmount = 20;          // Amount of HP restored
     public float rotationSpeed = 50f;    // Just for visual spinning effect (optional)
     public AudioClip pickupSound;        
