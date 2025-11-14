@@ -49,6 +49,10 @@ public class Player : Character
             spriteRenderer.flipX = false;   // face right
         else if (currentVelocity.x < -0.1f)
             spriteRenderer.flipX = true;    // face left
+
+        // --- Shooting ---
+        if (Input.GetMouseButtonDown(0))   // <<<<<<<< เพิ่มตรงนี้
+            Shoot();
     }
 
     void FixedUpdate()
@@ -75,4 +79,22 @@ public class Player : Character
         if (healthBar != null)
             healthBar.UpdateHealthBar(Health);
     }
+    
+
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public float bulletSpeed = 10f;
+    void Shoot()
+    {
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 direction = (mousePos - (Vector2)firePoint.position).normalized;
+
+        GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+        Bullet bullet = bulletObj.GetComponent<Bullet>();
+        if (bullet != null)
+        {
+            bullet.Init(direction,bulletSpeed); // ส่งทิศทางยิง
+        }
+    }
+
 }
