@@ -28,13 +28,9 @@ public class HealthItem : MonoBehaviour
             if (player.Health > 100)
                 player.Health = 100;
 
-            // Update the health bar UI
-            if (player.healthBar != null)
-                player.healthBar.UpdateHealthBar(player.Health);
+         
 
-            // Play sound effect
-            if (pickupSound != null)
-                AudioSource.PlayClipAtPoint(pickupSound, transform.position);
+          
 
             // Destroy the item after pickup
             Destroy(gameObject);

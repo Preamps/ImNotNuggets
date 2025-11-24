@@ -106,7 +106,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   health: 20
-  speed: 3
+  uiHealthBarrrrrr: {fileID: 0}
+  damageHit: 10
+  speed: 4
   avoidRadius: 0.8
   avoidStrength: 2
 --- !u!70 &-7625129354019285695

@@ -1,17 +1,21 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 
 public class WaveManager : MonoBehaviour
 {
     
-    public GameObject enemyPrefab;
+    public GameObject[] enemyPrefabs;   // list of enemy types
+
     public Transform[] spawnPoints;
 
-    
+    public WavesCompleteUIManager wavesUI;
+
+
+
     public int totalWaves = 5;
     public float timeBetweenWaves = 3f;
-    public int startEnemyCount = 3;  
+    public int startEnemyCount = 3;
     public float enemyIncreasePerWave = 1.5f;
 
     private int currentWave = 0;
@@ -25,7 +29,6 @@ public class WaveManager : MonoBehaviour
 
     private void Update()
     {
-        // check if all enemies died then start next wave
         if (waveActive && aliveEnemies.Count == 0)
         {
             waveActive = false;
@@ -38,8 +41,13 @@ public class WaveManager : MonoBehaviour
         if (currentWave >= totalWaves)
         {
             Debug.Log("ALL WAVES COMPLETED!");
+
+            if (wavesUI != null)
+                wavesUI.ShowWavesCompleteUI();
+
             yield break;
         }
+
 
         currentWave++;
         Debug.Log("Wave " + currentWave + " is starting...");
@@ -47,7 +55,6 @@ public class WaveManager : MonoBehaviour
         yield return new WaitForSeconds(timeBetweenWaves);
 
         int enemyCount = Mathf.RoundToInt(startEnemyCount * Mathf.Pow(enemyIncreasePerWave, currentWave - 1));
-
         SpawnWave(enemyCount);
     }
 
@@ -59,17 +66,35 @@ public class WaveManager : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             Transform spawn = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            GameObject enemy = Instantiate(enemyPrefab, spawn.position, Quaternion.identity);
-            aliveEnemies.Add(enemy);
 
-            // When enemy dies will remove from list
-            EnemyDeathNotify deathNotify = enemy.AddComponent<EnemyDeathNotify>();
-            deathNotify.manager = this;
+            // Pick a random enemy prefab
+            GameObject randomEnemy = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
+
+            GameObject enemyObj = Instantiate(randomEnemy, spawn.position, Quaternion.identity);
+            aliveEnemies.Add(enemyObj);
+
+            // Add death notifier
+            EnemyDeath notifier = enemyObj.AddComponent<EnemyDeath>();
+            notifier.manager = this;
+            notifier.enemyObject = enemyObj;
         }
     }
 
     public void RemoveEnemy(GameObject enemy)
     {
         aliveEnemies.Remove(enemy);
+    }
+
+ 
+    public class EnemyDeath : MonoBehaviour
+    {
+        public WaveManager manager;
+        public GameObject enemyObject;
+
+        public void OnDeath()
+        {
+            manager.RemoveEnemy(enemyObject);
+            Destroy(enemyObject);
+        }
     }
 }

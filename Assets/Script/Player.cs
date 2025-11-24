@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
 
 public class Player : Character
 {
@@ -10,17 +13,26 @@ public class Player : Character
     public float deceleration = 10f;      // How fast player slows down
 
     
-    public HealthBar healthBar;
+    
     public SpriteRenderer spriteRenderer;
 
     
-    public Sprite playerSprite;           // Only 1 sprite needed, we will flipX
+    public Sprite playerSprite;           
 
     private Vector2 movement;
     private Vector2 currentVelocity;      // Current velocity (for inertia)
     private Vector2 velocitySmoothing;    // SmoothDamp helper
 
     private Rigidbody2D rb;
+
+    public int maxAmmo = 12;
+    private int currentAmmo;
+    public float reloadTime = 2f;
+    private bool isReloading = false;
+
+    public TMP_Text ammoText;
+    public Image reloadCircle;
+
 
     void Start()
     {
@@ -33,8 +45,13 @@ public class Player : Character
             spriteRenderer.sprite = playerSprite;
 
         Init(100);  // From Character
-        if (healthBar != null)
-            healthBar.UpdateHealthBar(Health);
+
+        currentAmmo = maxAmmo;
+        UpdateAmmoUI();
+
+        if (reloadCircle != null)
+            reloadCircle.fillAmount = 0f; // hide reload circle
+
     }
 
     void Update()
@@ -50,9 +67,21 @@ public class Player : Character
         else if (currentVelocity.x < -0.1f)
             spriteRenderer.flipX = true;    // face left
 
+        if (currentAmmo <= 0 && !isReloading)
+        {
+            StartCoroutine(Reload());
+        }
+
         // --- Shooting ---
-        if (Input.GetMouseButtonDown(0))   // <<<<<<<< เพิ่มตรงนี้
+        if (Input.GetMouseButtonDown(0) && !isReloading)
+        {
             Shoot();
+        }
+
+        if (Input.GetKeyDown(KeyCode.R) && currentAmmo < maxAmmo && !isReloading)
+        {
+            StartCoroutine(Reload());
+        }
     }
 
     void FixedUpdate()
@@ -76,8 +105,7 @@ public class Player : Character
     public void TakeDamage(int damage)
     {
         base.TakeDamage(damage);             // Character reduces health
-        if (healthBar != null)
-            healthBar.UpdateHealthBar(Health);
+        
     }
     
 
@@ -86,6 +114,16 @@ public class Player : Character
     public float bulletSpeed = 10f;
     void Shoot()
     {
+
+        if (currentAmmo <= 0)
+        {
+            StartCoroutine(Reload());
+            return;
+        }
+
+        currentAmmo--;
+        UpdateAmmoUI();
+
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direction = (mousePos - (Vector2)firePoint.position).normalized;
 
@@ -96,5 +134,50 @@ public class Player : Character
             bullet.Init(direction,bulletSpeed); // ส่งทิศทางยิง
         }
     }
+    IEnumerator Reload()
+    {
+        isReloading = true;
+        Debug.Log("Reloading...");
+        // Hide ammo text while reloading
+        if (ammoText != null)
+            ammoText.enabled = false;
+
+        if (reloadCircle != null)
+            reloadCircle.fillAmount = 0f;
+
+        float elapsed = 0f;
+        while (elapsed < reloadTime)
+        {
+            elapsed += Time.deltaTime;
+            if (reloadCircle != null)
+                reloadCircle.fillAmount = Mathf.Clamp01(elapsed / reloadTime);
+            yield return null;
+        }
+
+        currentAmmo = maxAmmo;
+        isReloading = false;
+
+        // Show ammo text again after reload
+        if (ammoText != null)
+            ammoText.enabled = true;
+
+        UpdateAmmoUI();
+
+        if (reloadCircle != null)
+            reloadCircle.fillAmount = 0f; // hide circle after reload
+
+        Debug.Log("Reloaded!");
+    }
+
+
+    void UpdateAmmoUI()
+    {
+        if (ammoText != null)
+            ammoText.text = $"{currentAmmo} / {maxAmmo}";
+    }
+
+    // UI Ammo
+    public int GetCurrentAmmo() => currentAmmo;
+    public int GetMaxAmmo() => maxAmmo;
 
 }

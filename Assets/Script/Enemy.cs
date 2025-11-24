@@ -2,7 +2,7 @@
 
 public class Enemy : Character
 {
-    private int damageHit;
+    public int damageHit = 10;
     private Transform player;
     public float speed = 2f;
 
@@ -63,4 +63,18 @@ public class Enemy : Character
             }
         }
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            Character player = collision.GetComponent<Character>();
+            if (player != null)
+            {
+                player.TakeDamage(damageHit);
+            }
+        }
+    }
+
+
 }
