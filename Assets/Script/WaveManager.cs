@@ -24,6 +24,9 @@ public class WaveManager : MonoBehaviour
 
     private void Start()
     {
+        // โหลด wave ที่เคย save ไว้
+        currentWave = WaveSaveManager.LoadWave() - 1;
+        
         StartCoroutine(StartNextWave());
     }
 
@@ -50,6 +53,7 @@ public class WaveManager : MonoBehaviour
 
 
         currentWave++;
+        WaveSaveManager.SaveWave(currentWave);
         Debug.Log("Wave " + currentWave + " is starting...");
 
         yield return new WaitForSeconds(timeBetweenWaves);

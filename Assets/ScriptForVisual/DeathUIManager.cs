@@ -27,6 +27,9 @@ public class DeathUIManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
+        int savedWave = WaveSaveManager.LoadWave();
+        Debug.Log("Restarting... Saved Wave = " + savedWave);
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

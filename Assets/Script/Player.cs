@@ -102,11 +102,10 @@ public class Player : Character
     }
 
     // --- Damage handling ---
-    public void TakeDamage(int damage)
-    {
-        base.TakeDamage(damage);             // Character reduces health
-        
-    }
+    //public void TakeDamage(int damage)
+    //{
+       // base.TakeDamage(damage);             // Character reduces heal
+    //}
     
 
     public GameObject bulletPrefab;
