@@ -5070,9 +5070,9 @@ GameObject:
   - component: {fileID: 139179388}
   - component: {fileID: 139179387}
   - component: {fileID: 139179386}
-  - component: {fileID: 139179389}
   - component: {fileID: 139179390}
   - component: {fileID: 139179391}
+  - component: {fileID: 139179392}
   m_Layer: 5
   m_Name: Start
   m_TagString: Untagged
@@ -5095,10 +5095,10 @@ RectTransform:
   - {fileID: 1937028588}
   m_Father: {fileID: 1884381867}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 467, y: -81}
-  m_SizeDelta: {x: 160, y: 30}
+  m_SizeDelta: {x: -1760, y: -1050}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &139179386
 MonoBehaviour:
@@ -5206,21 +5206,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 139179384}
   m_CullTransparentMesh: 1
---- !u!114 &139179389
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 139179384}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23ba7f1cbe1429f4fa2eb171fe18ec5f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SmoothMenuCameraWithZone
-  maxMoveX: 80
-  maxMoveY: 70
-  smoothSpeed: 10
 --- !u!95 &139179390
 Animator:
   serializedVersion: 7
@@ -5272,6 +5257,21 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!114 &139179392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139179384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51560dc5444137f4aa7edbc0411b40da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SmoothCameraV2
+  maxMoveX: 80
+  maxMoveY: 70
+  smoothSpeed: 10
 --- !u!1 &175313769
 GameObject:
   m_ObjectHideFlags: 0
@@ -11382,6 +11382,7 @@ GameObject:
   - component: {fileID: 1628310266}
   - component: {fileID: 1628310269}
   - component: {fileID: 1628310270}
+  - component: {fileID: 1628310271}
   m_Layer: 5
   m_Name: Exit
   m_TagString: Untagged
@@ -11404,9 +11405,9 @@ RectTransform:
   - {fileID: 594622676}
   m_Father: {fileID: 1884381867}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 467, y: -284}
+  m_AnchorMin: {x: 1, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchoredPosition: {x: -493, y: -284}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1628310266
@@ -11522,7 +11523,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1628310264}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23ba7f1cbe1429f4fa2eb171fe18ec5f, type: 3}
   m_Name: 
@@ -11559,6 +11560,21 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!114 &1628310271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1628310264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51560dc5444137f4aa7edbc0411b40da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SmoothCameraV2
+  maxMoveX: 80
+  maxMoveY: 70
+  smoothSpeed: 10
 --- !u!1 &1796905674
 GameObject:
   m_ObjectHideFlags: 0
@@ -11695,13 +11711,13 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 0e3f93bef112f474fb855ac63ce42373, type: 3}
   - {fileID: 8300000, guid: 0d5cea12186076547ab034f60007f3b4, type: 3}
   - {fileID: 8300000, guid: a91b3ccc54ac568479c4677dc37d07e1, type: 3}
-  - {fileID: 8300000, guid: dbcfa2e6921417e45bb3520b25df9344, type: 3}
   - {fileID: 8300000, guid: ddaff430da78e7f458b9a4c237f97460, type: 3}
   - {fileID: 8300000, guid: 6d479f2a7eb63a043a600c8221fcc910, type: 3}
   - {fileID: 8300000, guid: a97eeb852597dac44a3f7e1fb31defc8, type: 3}
   - {fileID: 8300000, guid: 5a1c538c5c6b47c4bb7c024f1e7c6644, type: 3}
   - {fileID: 8300000, guid: a2a1ededb90b56a4db61c9eb18e3492e, type: 3}
   - {fileID: 8300000, guid: 7c68f0262d87b76409d31882c9917a47, type: 3}
+  - {fileID: 8300000, guid: dbcfa2e6921417e45bb3520b25df9344, type: 3}
   musicVolume: 0.099
   sfxVolume: 0.702
 --- !u!4 &1796905677
@@ -11895,7 +11911,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 193140369}
   m_PlaneDistance: 100
   m_PixelPerfect: 1
   m_ReceivesEvents: 1

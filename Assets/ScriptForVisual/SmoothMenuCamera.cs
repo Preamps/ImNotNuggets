@@ -29,3 +29,4 @@ public class SmoothMenuCameraWithZone : MonoBehaviour
         transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * smoothSpeed);
     }
 }
+
