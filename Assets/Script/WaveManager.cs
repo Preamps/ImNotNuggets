@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public class WaveManager : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class WaveManager : MonoBehaviour
 
     public WavesCompleteUIManager wavesUI;
 
+    public TMP_Text waveText;
 
 
     public int totalWaves = 5;
@@ -24,10 +26,12 @@ public class WaveManager : MonoBehaviour
 
     private void Start()
     {
+
         // โหลด wave ที่เคย save ไว้
-        currentWave = WaveSaveManager.LoadWave() - 1;
-        
+        //currentWave = WaveSaveManager.LoadWave() - 1;
+
         StartCoroutine(StartNextWave());
+       
     }
 
     private void Update()
@@ -36,6 +40,7 @@ public class WaveManager : MonoBehaviour
         {
             waveActive = false;
             StartCoroutine(StartNextWave());
+            SoundManager.Instance.PlaySFX("WaveStart");
         }
     }
 
@@ -47,6 +52,12 @@ public class WaveManager : MonoBehaviour
 
             if (wavesUI != null)
                 wavesUI.ShowWavesCompleteUI();
+            if (waveText != null)
+                waveText.text = "All Waves Completed!";
+
+            SoundManager.Instance.PlaySFX("Win");
+
+
 
             yield break;
         }
@@ -55,6 +66,11 @@ public class WaveManager : MonoBehaviour
         currentWave++;
         WaveSaveManager.SaveWave(currentWave);
         Debug.Log("Wave " + currentWave + " is starting...");
+
+        if (waveText != null)
+        {
+            waveText.text = currentWave + " / " + totalWaves;
+        }
 
         yield return new WaitForSeconds(timeBetweenWaves);
 

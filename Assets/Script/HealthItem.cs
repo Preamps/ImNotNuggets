@@ -7,7 +7,7 @@ public class HealthItem : MonoBehaviour
    
     public int healAmount = 20;          // Amount of HP restored
     public float rotationSpeed = 50f;    // Just for visual spinning effect (optional)
-    public AudioClip pickupSound;        
+           
 
     private void Update()
     {
@@ -28,9 +28,11 @@ public class HealthItem : MonoBehaviour
             if (player.Health > 100)
                 player.Health = 100;
 
-         
+            SoundManager.Instance.PlaySFX("HPpickup");
 
-          
+
+
+
 
             // Destroy the item after pickup
             Destroy(gameObject);

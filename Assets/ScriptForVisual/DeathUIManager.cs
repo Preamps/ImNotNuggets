@@ -19,6 +19,8 @@ public class DeathUIManager : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
 
+        SoundManager.Instance.PlaySFX("Lose");
+
         // Hide crosshair
         FindObjectOfType<CrosshairController>().crosshair.gameObject.SetActive(false);
     }

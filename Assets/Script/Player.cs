@@ -1,38 +1,42 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-
 public class Player : Character
 {
-    
-    public float moveSpeed = 5f;          // Top speed
-    public float acceleration = 10f;      // How fast player accelerates
-    public float deceleration = 10f;      // How fast player slows down
+    [Header("Movement")]
+    public float moveSpeed = 5f;
+    public float acceleration = 10f;
+    public float deceleration = 10f;
 
-    
-    
+    [Header("Camera")]
+    public Camera mainCamera;  // assign in inspector
+
+    [Header("Sprite")]
     public SpriteRenderer spriteRenderer;
+    public Sprite playerSprite;
 
-    
-    public Sprite playerSprite;           
-
-    private Vector2 movement;
-    private Vector2 currentVelocity;      // Current velocity (for inertia)
-    private Vector2 velocitySmoothing;    // SmoothDamp helper
-
-    private Rigidbody2D rb;
-
+    [Header("Ammo")]
     public int maxAmmo = 12;
     private int currentAmmo;
     public float reloadTime = 2f;
     private bool isReloading = false;
-
     public TMP_Text ammoText;
     public Image reloadCircle;
 
+    [Header("Gun")]
+    public GunAim gunAim;
+    public MuzzleFlash muzzleFlash;
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public float bulletSpeed = 10f;
+
+    // Private movement helpers
+    private Vector2 movement;
+    private Vector2 currentVelocity;
+    private Vector2 velocitySmoothing;
+    private Rigidbody2D rb;
 
     void Start()
     {
@@ -44,14 +48,13 @@ public class Player : Character
         if (playerSprite != null)
             spriteRenderer.sprite = playerSprite;
 
-        Init(100);  // From Character
+        Init(100); // From Character
 
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
 
         if (reloadCircle != null)
             reloadCircle.fillAmount = 0f; // hide reload circle
-
     }
 
     void Update()
@@ -63,33 +66,27 @@ public class Player : Character
 
         // --- Sprite direction ---
         if (currentVelocity.x > 0.1f)
-            spriteRenderer.flipX = false;   // face right
+            spriteRenderer.flipX = false;
         else if (currentVelocity.x < -0.1f)
-            spriteRenderer.flipX = true;    // face left
+            spriteRenderer.flipX = true;
 
+        // --- Auto reload ---
         if (currentAmmo <= 0 && !isReloading)
-        {
             StartCoroutine(Reload());
-        }
 
-        // --- Shooting ---
+        // --- Shoot ---
         if (Input.GetMouseButtonDown(0) && !isReloading)
-        {
             Shoot();
-        }
 
+        // --- Manual reload ---
         if (Input.GetKeyDown(KeyCode.R) && currentAmmo < maxAmmo && !isReloading)
-        {
             StartCoroutine(Reload());
-        }
     }
 
     void FixedUpdate()
     {
-        // --- Calculate target velocity ---
         Vector2 targetVelocity = movement * moveSpeed;
 
-        // --- Smooth acceleration / deceleration ---
         currentVelocity = Vector2.SmoothDamp(
             currentVelocity,
             targetVelocity,
@@ -97,23 +94,21 @@ public class Player : Character
             movement.magnitude > 0 ? 1f / acceleration : 1f / deceleration
         );
 
-        // --- Move player ---
         rb.MovePosition(rb.position + currentVelocity * Time.fixedDeltaTime);
     }
 
-    // --- Damage handling ---
-    //public void TakeDamage(int damage)
-    //{
-       // base.TakeDamage(damage);             // Character reduces heal
-    //}
-    
+    IEnumerator ShootFlashYellow()
+    {
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.yellow;
+            yield return new WaitForSeconds(0.05f);
+            spriteRenderer.color = Color.white;
+        }
+    }
 
-    public GameObject bulletPrefab;
-    public Transform firePoint;
-    public float bulletSpeed = 10f;
     void Shoot()
     {
-
         if (currentAmmo <= 0)
         {
             StartCoroutine(Reload());
@@ -122,27 +117,42 @@ public class Player : Character
 
         currentAmmo--;
         UpdateAmmoUI();
+        SoundManager.Instance.PlaySFX("GunShot");
 
-        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // --- Camera shake ---
+        if (mainCamera != null)
+        {
+            CameraFollow camFollow = mainCamera.GetComponent<CameraFollow>();
+            if (camFollow != null)
+                camFollow.Shake(0.1f, 1.5f); // duration, magnitude
+        }
+
+        // --- Gun effects ---
+        if (gunAim != null)
+            gunAim.AddRecoil();
+
+        if (muzzleFlash != null)
+            muzzleFlash.Flash();
+
+        StartCoroutine(ShootFlashYellow());
+
+        // --- Shoot bullet ---
+        Vector2 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direction = (mousePos - (Vector2)firePoint.position).normalized;
 
         GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         Bullet bullet = bulletObj.GetComponent<Bullet>();
         if (bullet != null)
-        {
-            bullet.Init(direction,bulletSpeed); // ส่งทิศทางยิง
-        }
+            bullet.Init(direction, bulletSpeed);
     }
+
     IEnumerator Reload()
     {
         isReloading = true;
-        Debug.Log("Reloading...");
-        // Hide ammo text while reloading
-        if (ammoText != null)
-            ammoText.enabled = false;
+        if (ammoText != null) ammoText.enabled = false;
+        if (reloadCircle != null) reloadCircle.fillAmount = 0f;
 
-        if (reloadCircle != null)
-            reloadCircle.fillAmount = 0f;
+        SoundManager.Instance.PlaySFX("Reload");
 
         float elapsed = 0f;
         while (elapsed < reloadTime)
@@ -156,27 +166,19 @@ public class Player : Character
         currentAmmo = maxAmmo;
         isReloading = false;
 
-        // Show ammo text again after reload
-        if (ammoText != null)
-            ammoText.enabled = true;
-
+        if (ammoText != null) ammoText.enabled = true;
         UpdateAmmoUI();
 
         if (reloadCircle != null)
-            reloadCircle.fillAmount = 0f; // hide circle after reload
-
-        Debug.Log("Reloaded!");
+            reloadCircle.fillAmount = 0f;
     }
-
 
     void UpdateAmmoUI()
     {
         if (ammoText != null)
-            ammoText.text = $"{currentAmmo} / {maxAmmo}";
+            ammoText.text = $"{currentAmmo}/{maxAmmo}";
     }
 
-    // UI Ammo
     public int GetCurrentAmmo() => currentAmmo;
     public int GetMaxAmmo() => maxAmmo;
-
 }

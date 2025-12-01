@@ -5,7 +5,7 @@ public class MainMenu : MonoBehaviour
 {
     public void StartGame()
     {
-        StartCoroutine(SceneFader.Instance.FadeOut("SampleScene"));
+        StartCoroutine(SceneFader.Instance.FadeOut("GamePlay"));
     }
 
     public void ExitGame()

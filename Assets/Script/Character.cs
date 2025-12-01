@@ -25,6 +25,8 @@ public class Character : MonoBehaviour
         }
     }
 
+    [SerializeField] private bool isPlayer = false; // set in inspector
+
     private void Awake()
     {
         sprite = GetComponent<SpriteRenderer>();
@@ -43,6 +45,12 @@ public class Character : MonoBehaviour
             if (deathUIManager != null)
                 deathUIManager.ShowDeathUI();
 
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlaySFX(isPlayer ? "PlayerDead" : "EnemyDead");
+            }
+            
+
 
             WaveManager.EnemyDeath notifier = GetComponent<WaveManager.EnemyDeath>();
             if (notifier != null)
@@ -56,6 +64,12 @@ public class Character : MonoBehaviour
     public void TakeDamage(int damage)
     {
         Health -= damage;
+
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(isPlayer ? "PlayerHit" : "EnemyHit");
+        }
+
         StartCoroutine(FlashRed());
         IsDead();
     }

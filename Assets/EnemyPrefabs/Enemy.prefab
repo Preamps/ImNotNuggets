@@ -105,10 +105,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38c40e4ecab767b4aa8b4d2fba2c1474, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  health: 20
+  deathUIManager: {fileID: 0}
+  health: 25
+  isPlayer: 0
   uiHealthBarrrrrr: {fileID: 0}
-  damageHit: 10
-  speed: 4
+  damageHit: 7
+  speed: 4.5
   avoidRadius: 0.8
   avoidStrength: 2
 --- !u!70 &-7625129354019285695
