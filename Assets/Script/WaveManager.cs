@@ -26,12 +26,24 @@ public class WaveManager : MonoBehaviour
 
     private void Start()
     {
-
-        // โหลด wave ที่เคย save ไว้
-        //currentWave = WaveSaveManager.LoadWave() - 1;
+        // ตรวจว่าเป็น Start ใหม่ หรือ Restart
+        bool isNewGame = PlayerPrefs.GetInt("StartNewGame", 0) == 1;
+       
+        if (isNewGame)
+        {
+            // เริ่มใหม่ → เริ่ม wave 1
+            currentWave = 0;
+            WaveSaveManager.ResetWave();
+            PlayerPrefs.SetInt("StartNewGame", 0); // ล้าง flag
+        }
+        else
+        {
+            // Restart → โหลด wave ล่าสุด
+            int savedWave = WaveSaveManager.LoadWave(); // เช่น 5
+            currentWave = savedWave - 1; // -1 เพราะ wave จะถูก ++ ใน StartNextWave()
+        }
 
         StartCoroutine(StartNextWave());
-       
     }
 
     private void Update()
@@ -56,15 +68,12 @@ public class WaveManager : MonoBehaviour
                 waveText.text = "All Waves Completed!";
 
             SoundManager.Instance.PlaySFX("Win");
-
-
-
             yield break;
         }
 
-
         currentWave++;
         WaveSaveManager.SaveWave(currentWave);
+
         Debug.Log("Wave " + currentWave + " is starting...");
 
         if (waveText != null)

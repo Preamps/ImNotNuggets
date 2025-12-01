@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class DeathUIManager : MonoBehaviour
@@ -29,6 +29,10 @@ public class DeathUIManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
+
+        // บอกว่าเป็นการ restart → ให้โหลด wave เดิม
+        PlayerPrefs.SetInt("StartNewGame", 0);
+
         int savedWave = WaveSaveManager.LoadWave();
         Debug.Log("Restarting... Saved Wave = " + savedWave);
 
