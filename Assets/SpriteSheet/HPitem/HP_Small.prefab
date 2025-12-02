@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8443814134825519473}
   m_Layer: 0
   m_Name: HP_Small
-  m_TagString: Untagged
+  m_TagString: ItemHP
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -106,7 +106,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HealthItem
   healAmount: 20
   rotationSpeed: 80
-  pickupSound: {fileID: 0}
 --- !u!61 &8443814134825519473
 BoxCollider2D:
   m_ObjectHideFlags: 0

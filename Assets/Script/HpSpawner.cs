@@ -10,6 +10,7 @@ public class HpSpawner : MonoBehaviour
     public float maxY = 20f;
     public float spawnInterval = 20f;
 
+    public int maxItems = 15;   // ⭐ จำนวนสูงสุดของ item ในซีน
     public int spawnCount = 5;
     // เรียกได้จาก WaveManager หรือเรียกเองก็ได้
     private void Start()
@@ -32,6 +33,19 @@ public class HpSpawner : MonoBehaviour
             Debug.LogWarning("MultiItemSpawner2D: ไม่มี itemPrefabs");
             return;
         }
+
+        // ⭐ นับจำนวนไอเท็มในซีนตอนนี้
+        int currentItemCount = GameObject.FindGameObjectsWithTag("ItemHP").Length;
+
+        // ⭐ ถ้าเกิน 15 หยุด spawn
+        if (currentItemCount >= maxItems)
+        {
+            Debug.Log("Items เต็มจำนวนแล้ว ไม่ spawn เพิ่ม");
+            return;
+        }
+
+        // ⭐ คำนวณจำนวนที่ spawn ได้ (ห้ามทำให้เกิน 15)
+        int amountToSpawn = Mathf.Min(spawnCount, maxItems - currentItemCount);
 
         for (int i = 0; i < spawnCount; i++)
         {
