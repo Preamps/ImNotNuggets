@@ -47639,7 +47639,7 @@ GameObject:
   - component: {fileID: 975574107}
   m_Layer: 0
   m_Name: HP_Pickup
-  m_TagString: Untagged
+  m_TagString: ItemHP
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -47664,6 +47664,7 @@ MonoBehaviour:
   minY: -12
   maxY: 20
   spawnInterval: 20
+  maxItems: 15
   spawnCount: 5
 --- !u!4 &975574108
 Transform:
