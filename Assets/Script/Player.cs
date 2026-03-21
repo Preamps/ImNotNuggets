@@ -36,14 +36,13 @@ public class Player : Character
     private Vector2 movement;
     private Vector2 currentVelocity;
     private Vector2 velocitySmoothing;
-    private Rigidbody2D rb;
+    
+
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-
         if (spriteRenderer == null)
-            spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
 
         if (playerSprite != null)
             spriteRenderer.sprite = playerSprite;
