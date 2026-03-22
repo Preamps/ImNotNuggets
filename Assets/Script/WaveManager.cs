@@ -30,6 +30,7 @@ public class WaveManager : MonoBehaviour
     private int deathCountThisWave = 0;
     private int highestWave = 0;
     private float waveStartTime = 0f;
+    private int totalDeathCount = 0;
 
     private IEnumerator Start()
     {
@@ -48,7 +49,8 @@ public class WaveManager : MonoBehaviour
             // เริ่มใหม่ → เริ่ม wave 1
             currentWave = 0;
             highestWave = 0;
-     
+            totalDeathCount = 0; // 🔹 2. ถ้าเริ่มเกมใหม่จริงๆ ให้รีเซ็ตเป็น 0
+
             WaveSaveManager.ResetWave();
 
             PlayerPrefs.SetInt("HighestWave", 0);
@@ -157,25 +159,25 @@ public class WaveManager : MonoBehaviour
     // Player เรียกตอนตาย
     public void RegisterDeath()
     {
-        deathCountThisWave++;
+        deathCountThisWave++; // นับเฉพาะเวฟนี้ (สำหรับส่ง Analytics รายครั้ง)
+        totalDeathCount++;    // นับสะสมทั้งหมด (ไม่หายเมื่อ Restart)
 
         float timeInWave = Time.time - waveStartTime;
 
-        //  Failure Rate (พร้อมเวลา)
+        // ส่ง Analytics โดยใช้ค่าสะสม (Total) เพื่อให้ Dashboard เห็นภาพรวม
         SendWaveAnalytics("failure_rate", timeInWave);
     }
     void SendWaveAnalytics(string metricType, float timeValue)
     {
+        if (!InitUGS.IsInitialized) return;
         // ✅ เช็คว่า init แล้ว
-        if (UnityServices.State != ServicesInitializationState.Initialized)
-            return;
+        Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
 
         CustomEvent waveAnalytics = new CustomEvent("WaveAnalytics");
-
-        // 🔹 common data
+                // 🔹 common data
         waveAnalytics.Add("wave", currentWave);
         waveAnalytics.Add("highest_wave", highestWave);
-        waveAnalytics.Add("deaths", deathCountThisWave);
+        waveAnalytics.Add("deaths", totalDeathCount);
 
         // 🔥 แยก metric ด้วยชื่อ field
         switch (metricType)
@@ -194,8 +196,15 @@ public class WaveManager : MonoBehaviour
                 break;
         }
 
-        AnalyticsService.Instance.RecordEvent(waveAnalytics);
-        Debug.Log("Event Sent: " + metricType);
+        try
+        {
+            AnalyticsService.Instance.RecordEvent(waveAnalytics);
+            Debug.Log("<color=white>Analytics Recorded: </color>" + metricType);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning("Record failed: " + e.Message);
+        }
     }
 
     public int GetCurrentWave()

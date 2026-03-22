@@ -1,4 +1,5 @@
-﻿using Unity.Services.Authentication;
+﻿using Unity.Services.Analytics;
+using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Core.Environments;
 using UnityEngine;
@@ -6,48 +7,30 @@ using UnityEngine;
 public class InitUGS : MonoBehaviour
 {
     public static bool IsInitialized { get; private set; } = false;
-    private static InitUGS instance;
 
     async void Awake()
     {
-        // 1. ป้องกันการมีสคริปต์ซ้ำใน Scene
-        if (instance != null && instance != this)
-        {
-            Destroy(this.gameObject);
-            return;
-        }
-        instance = this;
-        DontDestroyOnLoad(this.gameObject); // อยู่ยาวๆ จนจบเกม
-
         try
         {
-            // 2. เช็คว่า Init หรือยัง
-            if (UnityServices.State == ServicesInitializationState.Uninitialized)
-            {
-                InitializationOptions options = new InitializationOptions();
-                options.SetEnvironmentName("production");
-                await UnityServices.InitializeAsync(options);
-            }
+            // 1. เริ่มระบบ Services
+            await UnityServices.InitializeAsync();
 
-            // 3. เช็คก่อน Login ว่าล็อกอินค้างไว้หรือยัง (แก้ Error ที่คุณเจอ)
+            // 2. แอบ Login เงียบๆ (เพื่อให้มี ID สำหรับส่ง Analytics)
             if (!AuthenticationService.Instance.IsSignedIn)
             {
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
-                Debug.Log("UGS: Signed in anonymously.");
-            }
-            else
-            {
-                Debug.Log("UGS: Already signed in.");
             }
 
-            // 4. ตั้งค่าสถานะเป็น True เพื่อให้ WaveManager ทำงานต่อได้
+            // 3. เริ่มเก็บข้อมูล
+            AnalyticsService.Instance.StartDataCollection();
+
             IsInitialized = true;
-            Debug.Log("<color=green>UGS Ready for Production!</color>");
+            Debug.Log("<color=green>UGS & Analytics Ready!</color>");
         }
         catch (System.Exception e)
         {
             Debug.LogError("Init Failed: " + e.Message);
-            // กรณี Error ก็ควรปล่อยให้เกมไปต่อได้ (แต่อาจจะไม่มี Analytics)
+            // กรณี Error ก็ปล่อยให้เกมไปต่อได้ แต่อาจไม่มีข้อมูลส่งขึ้น Cloud
             IsInitialized = true;
         }
     }
