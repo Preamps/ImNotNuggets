@@ -41,22 +41,30 @@ public class Character : MonoBehaviour
     {
         if (health <= 0)
         {
+            if (isPlayer)
+            {
+                Player playerScript = GetComponent<Player>();
+                if (playerScript != null)
+                {
+                    playerScript.Die(); // ??????? Player ???????????? Analytics ????????
+                }
 
-            if (deathUIManager != null)
-                deathUIManager.ShowDeathUI();
+                if (deathUIManager != null)
+                    deathUIManager.ShowDeathUI();
+            }
+            else // ????????????
+            {
+                WaveManager.EnemyDeath notifier = GetComponent<WaveManager.EnemyDeath>();
+                if (notifier != null)
+                    notifier.OnDeath();
+            }
 
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.PlaySFX(isPlayer ? "PlayerDead" : "EnemyDead");
             }
-            
 
-
-            WaveManager.EnemyDeath notifier = GetComponent<WaveManager.EnemyDeath>();
-            if (notifier != null)
-                notifier.OnDeath();
-
-            Destroy(this.gameObject);
+            Destroy(this.gameObject); // ????????????????????????????????????????
             return true;
         }
         else return false;

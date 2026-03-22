@@ -715,10 +715,10 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 018f3531-480a-4fcf-bad0-2d95dd5bf08e
+  cloudProjectId: 71c8757b-8653-4e94-a8f2-af900cc77d29
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: ImNotNuggets
+  projectName: My project
   organizationId: preamps
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

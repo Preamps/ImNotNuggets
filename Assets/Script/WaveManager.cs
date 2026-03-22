@@ -27,10 +27,10 @@ public class WaveManager : MonoBehaviour
     private bool waveActive = false;
 
     // Analytics
-    private int deathCountThisWave = 0;
-    private int highestWave = 0;
+    private int deathCountThisWave = 0; // รีเซ็ตทุก Wave
+    private int totalDeathCount = 0;    // นับสะสมต่อเนื่อง (ไม่รีเซ็ตตอน Restart)
+    private int highestWave = 0;        // Wave สูงสุดที่เคยไปถึง
     private float waveStartTime = 0f;
-    private int totalDeathCount = 0;
 
     private IEnumerator Start()
     {
@@ -43,6 +43,7 @@ public class WaveManager : MonoBehaviour
         bool isNewGame = PlayerPrefs.GetInt("StartNewGame", 0) == 1;
         
         highestWave = PlayerPrefs.GetInt("HighestWave", 0);
+        totalDeathCount = PlayerPrefs.GetInt("TotalDeaths", 0);
 
         if (isNewGame)
         {
@@ -66,8 +67,13 @@ public class WaveManager : MonoBehaviour
         StartCoroutine(StartNextWave());
     }
 
-    private void Update()
+    void Update()
     {
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            RegisterDeath();
+        }
+
         if (waveActive && aliveEnemies.Count == 0)
         {
             waveActive = false;
@@ -78,7 +84,8 @@ public class WaveManager : MonoBehaviour
             SendWaveAnalytics("time_to_complete_rate", timeTaken);
 
             StartCoroutine(StartNextWave());
-            SoundManager.Instance.PlaySFX("WaveStart");
+            if (SoundManager.Instance != null)
+                SoundManager.Instance.PlaySFX("WaveStart");
         }
     }
 
@@ -105,7 +112,6 @@ public class WaveManager : MonoBehaviour
         if (currentWave > highestWave)
         {
             highestWave = currentWave;
-
             PlayerPrefs.SetInt("HighestWave", highestWave);
             PlayerPrefs.Save();
 
@@ -123,11 +129,9 @@ public class WaveManager : MonoBehaviour
 
         yield return new WaitForSeconds(timeBetweenWaves);
 
-        int enemyCount = Mathf.RoundToInt(
-            startEnemyCount * Mathf.Pow(enemyIncreasePerWave, currentWave - 1)
-        );
-
+        int enemyCount = Mathf.RoundToInt(startEnemyCount * Mathf.Pow(enemyIncreasePerWave, currentWave - 1));
         SpawnWave(enemyCount);
+
     }
 
     void SpawnWave(int count)
@@ -153,57 +157,67 @@ public class WaveManager : MonoBehaviour
 
     public void RemoveEnemy(GameObject enemy)
     {
-        aliveEnemies.Remove(enemy);
+        if (aliveEnemies.Contains(enemy))
+            aliveEnemies.Remove(enemy);
     }
 
     // Player เรียกตอนตาย
     public void RegisterDeath()
     {
+        Debug.Log("<color=red>Player Died! Counting...</color>");
         deathCountThisWave++; // นับเฉพาะเวฟนี้ (สำหรับส่ง Analytics รายครั้ง)
         totalDeathCount++;    // นับสะสมทั้งหมด (ไม่หายเมื่อ Restart)
+
+        PlayerPrefs.SetInt("TotalDeaths", totalDeathCount);
+        PlayerPrefs.Save();
 
         float timeInWave = Time.time - waveStartTime;
 
         // ส่ง Analytics โดยใช้ค่าสะสม (Total) เพื่อให้ Dashboard เห็นภาพรวม
         SendWaveAnalytics("failure_rate", timeInWave);
+        Debug.Log("<color=green>Analytics Sent! Total Deaths: </color>" + totalDeathCount);
     }
+
     void SendWaveAnalytics(string metricType, float timeValue)
     {
         if (!InitUGS.IsInitialized) return;
-        // ✅ เช็คว่า init แล้ว
-        Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
 
-        CustomEvent waveAnalytics = new CustomEvent("WaveAnalytics");
-                // 🔹 common data
-        waveAnalytics.Add("wave", currentWave);
-        waveAnalytics.Add("highest_wave", highestWave);
-        waveAnalytics.Add("deaths", totalDeathCount);
+        // บังคับเริ่มเก็บข้อมูล (กันพลาด)
+        AnalyticsService.Instance.StartDataCollection();
 
-        // 🔥 แยก metric ด้วยชื่อ field
+        CustomEvent waveEvent = new CustomEvent("WaveAnalytics");
+
+        // 🔹 Common Data (ส่งทุกครั้ง)
+        waveEvent.Add("current_wave", currentWave);
+        waveEvent.Add("highest_wave_reached", highestWave);
+        waveEvent.Add("total_deaths_accumulated", totalDeathCount);
+
+        // 🔹 Metric Logic
         switch (metricType)
         {
             case "player_skill_progression":
-                waveAnalytics.Add("player_skill_progression", highestWave);
+                waveEvent.Add("progression_wave", highestWave);
                 break;
 
             case "failure_rate":
-                waveAnalytics.Add("failure_rate", 1); // ยิงครั้ง = 1 death
-                waveAnalytics.Add("time_in_wave", timeValue);
+                waveEvent.Add("deaths_in_this_wave", deathCountThisWave);
+                waveEvent.Add("time_until_death", timeValue);
                 break;
 
             case "time_to_complete_rate":
-                waveAnalytics.Add("time_to_complete_rate", timeValue);
+                waveEvent.Add("wave_completion_time", timeValue);
                 break;
         }
 
         try
         {
-            AnalyticsService.Instance.RecordEvent(waveAnalytics);
-            Debug.Log("<color=white>Analytics Recorded: </color>" + metricType);
+            AnalyticsService.Instance.RecordEvent(waveEvent);
+            AnalyticsService.Instance.Flush(); // บังคับส่งทันที
+            Debug.Log($"<color=cyan>Analytics Success:</color> {metricType} | Total Deaths: {totalDeathCount}");
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning("Record failed: " + e.Message);
+            Debug.LogWarning("Analytics Record failed: " + e.Message);
         }
     }
 

@@ -38,6 +38,7 @@ public class Player : Character
     private Vector2 velocitySmoothing;
 
     public WaveManager waveManager;
+    private bool _alreadyDead = false;
 
     void Start()
     {
@@ -179,10 +180,18 @@ public class Player : Character
     }
     public void Die()
     {
-        waveManager.RegisterDeath();
+        if (_alreadyDead) return; // ถ้าตายแล้วไม่ต้องทำซ้ำ
+        _alreadyDead = true;
 
-        Debug.Log("Player Died at Wave: " + waveManager.GetCurrentWave());
+        if (waveManager != null)
+        {
+            // 🔹 สั่งบวกเลขการตายสะสม และส่ง Analytics
+            waveManager.RegisterDeath();
+        }
+
+        Debug.Log("<color=red>Player Died!</color> Current Wave: " + waveManager.GetCurrentWave());
     }
+
 
     public int GetCurrentAmmo() => currentAmmo;
     public int GetMaxAmmo() => maxAmmo;
