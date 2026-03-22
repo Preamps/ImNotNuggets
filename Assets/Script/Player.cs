@@ -36,8 +36,8 @@ public class Player : Character
     private Vector2 movement;
     private Vector2 currentVelocity;
     private Vector2 velocitySmoothing;
-    
 
+    public WaveManager waveManager;
 
     void Start()
     {
@@ -176,6 +176,12 @@ public class Player : Character
     {
         if (ammoText != null)
             ammoText.text = $"{currentAmmo}/{maxAmmo}";
+    }
+    public void Die()
+    {
+        waveManager.RegisterDeath();
+
+        Debug.Log("Player Died at Wave: " + waveManager.GetCurrentWave());
     }
 
     public int GetCurrentAmmo() => currentAmmo;
