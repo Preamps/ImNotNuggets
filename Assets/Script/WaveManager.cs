@@ -31,9 +31,14 @@ public class WaveManager : MonoBehaviour
     private int highestWave = 0;
     private float waveStartTime = 0f;
 
-    private void Start()
+    private IEnumerator Start()
     {
         // ตรวจว่าเป็น Start ใหม่ หรือ Restart
+        while (!InitUGS.IsInitialized)
+        {
+            yield return null;
+        }
+
         bool isNewGame = PlayerPrefs.GetInt("StartNewGame", 0) == 1;
         
         highestWave = PlayerPrefs.GetInt("HighestWave", 0);
@@ -190,8 +195,6 @@ public class WaveManager : MonoBehaviour
         }
 
         AnalyticsService.Instance.RecordEvent(waveAnalytics);
-        AnalyticsService.Instance.Flush();
-
         Debug.Log("Event Sent: " + metricType);
     }
 
