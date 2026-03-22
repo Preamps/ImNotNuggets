@@ -159,20 +159,40 @@ public class WaveManager : MonoBehaviour
         //  Failure Rate (พร้อมเวลา)
         SendWaveAnalytics("failure_rate", timeInWave);
     }
-    void SendWaveAnalytics(string eventType, float timeValue)
+    void SendWaveAnalytics(string metricType, float timeValue)
     {
-        // ✅ เช็คตรง ๆ ว่า init แล้วหรือยัง
+        // ✅ เช็คว่า init แล้ว
         if (UnityServices.State != ServicesInitializationState.Initialized)
             return;
 
         CustomEvent waveAnalytics = new CustomEvent("WaveAnalytics");
-        waveAnalytics.Add("event_type", eventType);
+
+        // 🔹 common data
         waveAnalytics.Add("wave", currentWave);
         waveAnalytics.Add("highest_wave", highestWave);
-        waveAnalytics.Add("time", timeValue);
         waveAnalytics.Add("deaths", deathCountThisWave);
 
+        // 🔥 แยก metric ด้วยชื่อ field
+        switch (metricType)
+        {
+            case "player_skill_progression":
+                waveAnalytics.Add("player_skill_progression", highestWave);
+                break;
+
+            case "failure_rate":
+                waveAnalytics.Add("failure_rate", 1); // ยิงครั้ง = 1 death
+                waveAnalytics.Add("time_in_wave", timeValue);
+                break;
+
+            case "time_to_complete_rate":
+                waveAnalytics.Add("time_to_complete_rate", timeValue);
+                break;
+        }
+
         AnalyticsService.Instance.RecordEvent(waveAnalytics);
+        AnalyticsService.Instance.Flush();
+
+        Debug.Log("Event Sent: " + metricType);
     }
 
     public int GetCurrentWave()
