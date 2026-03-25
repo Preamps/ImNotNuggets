@@ -40,6 +40,15 @@ public class Player : Character
     public WaveManager waveManager;
     private bool _alreadyDead = false;
 
+    void Awake()
+    {
+        // ถ้าใน Inspector ลืมลากใส่ ให้มันหาเองในฉาก
+        if (waveManager == null)
+        {
+            waveManager = GameObject.FindObjectOfType<WaveManager>();
+        }
+    }
+
     void Start()
     {
         if (spriteRenderer == null)
@@ -180,16 +189,21 @@ public class Player : Character
     }
     public void Die()
     {
-        if (_alreadyDead) return; // ถ้าตายแล้วไม่ต้องทำซ้ำ
+        if (_alreadyDead) return;
         _alreadyDead = true;
 
         if (waveManager != null)
         {
             // 🔹 สั่งบวกเลขการตายสะสม และส่ง Analytics
             waveManager.RegisterDeath();
-        }
 
-        Debug.Log("<color=red>Player Died!</color> Current Wave: " + waveManager.GetCurrentWave());
+            // ย้ายเข้ามาข้างในนี้ เพราะถ้า waveManager เป็น Null บรรทัดนี้จะ Error ทันที
+            Debug.Log("<color=red>Player Died!</color> Current Wave: " + waveManager.GetCurrentWave());
+        }
+        else
+        {
+            Debug.LogWarning("Player Died! แต่หา WaveManager ไม่เจอ (Null)");
+        }
     }
 
 

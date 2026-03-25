@@ -26,10 +26,9 @@ public class WaveManager : MonoBehaviour
     private List<GameObject> aliveEnemies = new List<GameObject>();
     private bool waveActive = false;
 
-    // Analytics
-    private int deathCountThisWave = 0; // รีเซ็ตทุก Wave
-    private int totalDeathCount = 0;    // นับสะสมต่อเนื่อง (ไม่รีเซ็ตตอน Restart)
-    private int highestWave = 0;        // Wave สูงสุดที่เคยไปถึง
+    // Analytics Data
+    private int totalDeathCount = 0;    // นับสะสมต่อเนื่อง
+    private int highestWave = 0;        // Wave สูงสุดที่ไปถึง
     private float waveStartTime = 0f;
 
     private IEnumerator Start()
@@ -41,21 +40,18 @@ public class WaveManager : MonoBehaviour
         }
 
         bool isNewGame = PlayerPrefs.GetInt("StartNewGame", 0) == 1;
-        
         highestWave = PlayerPrefs.GetInt("HighestWave", 0);
         totalDeathCount = PlayerPrefs.GetInt("TotalDeaths", 0);
 
         if (isNewGame)
         {
-            // เริ่มใหม่ → เริ่ม wave 1
             currentWave = 0;
             highestWave = 0;
-            totalDeathCount = 0; // 🔹 2. ถ้าเริ่มเกมใหม่จริงๆ ให้รีเซ็ตเป็น 0
-
+            totalDeathCount = 0;
             WaveSaveManager.ResetWave();
-
             PlayerPrefs.SetInt("HighestWave", 0);
-            PlayerPrefs.SetInt("StartNewGame", 0); // ล้าง flag
+            PlayerPrefs.SetInt("TotalDeaths", 0);
+            PlayerPrefs.SetInt("StartNewGame", 0);
         }
         else
         {
@@ -69,21 +65,11 @@ public class WaveManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            RegisterDeath();
-        }
-
         if (waveActive && aliveEnemies.Count == 0)
         {
             waveActive = false;
-           
-            float timeTaken = Time.time - waveStartTime;
-            
-            // Time to Complete Rate
-            SendWaveAnalytics("time_to_complete_rate", timeTaken);
-
             StartCoroutine(StartNextWave());
+
             if (SoundManager.Instance != null)
                 SoundManager.Instance.PlaySFX("WaveStart");
         }
@@ -108,14 +94,12 @@ public class WaveManager : MonoBehaviour
         currentWave++;
         WaveSaveManager.SaveWave(currentWave);
 
-        //  Player Skill Progression
+        // อัปเดตสถิติ Wave สูงสุด
         if (currentWave > highestWave)
         {
             highestWave = currentWave;
             PlayerPrefs.SetInt("HighestWave", highestWave);
             PlayerPrefs.Save();
-
-            SendWaveAnalytics("player_skill_progression", 0f);
         }
 
         Debug.Log("Wave " + currentWave + " is starting...");
@@ -124,9 +108,7 @@ public class WaveManager : MonoBehaviour
             waveText.text = currentWave + " / " + totalWaves;
 
         // Reset Analytics
-        deathCountThisWave = 0;
         waveStartTime = Time.time;
-
         yield return new WaitForSeconds(timeBetweenWaves);
 
         int enemyCount = Mathf.RoundToInt(startEnemyCount * Mathf.Pow(enemyIncreasePerWave, currentWave - 1));
@@ -164,61 +146,44 @@ public class WaveManager : MonoBehaviour
     // Player เรียกตอนตาย
     public void RegisterDeath()
     {
-        Debug.Log("<color=red>Player Died! Counting...</color>");
-        deathCountThisWave++; // นับเฉพาะเวฟนี้ (สำหรับส่ง Analytics รายครั้ง)
-        totalDeathCount++;    // นับสะสมทั้งหมด (ไม่หายเมื่อ Restart)
-
+        totalDeathCount++;
         PlayerPrefs.SetInt("TotalDeaths", totalDeathCount);
         PlayerPrefs.Save();
-
-        float timeInWave = Time.time - waveStartTime;
-
-        // ส่ง Analytics โดยใช้ค่าสะสม (Total) เพื่อให้ Dashboard เห็นภาพรวม
-        SendWaveAnalytics("failure_rate", timeInWave);
-        Debug.Log("<color=green>Analytics Sent! Total Deaths: </color>" + totalDeathCount);
+        Debug.Log("<color=red>Player Died!</color> Total Deaths: " + totalDeathCount);
     }
 
-    void SendWaveAnalytics(string metricType, float timeValue)
+    public void SendPlayerSummary()
     {
         if (!InitUGS.IsInitialized) return;
-
-        // บังคับเริ่มเก็บข้อมูล (กันพลาด)
         AnalyticsService.Instance.StartDataCollection();
+        CustomEvent summaryEvent = new CustomEvent("Player_Summary");
 
-        CustomEvent waveEvent = new CustomEvent("WaveAnalytics");
-
-        // 🔹 Common Data (ส่งทุกครั้ง)
-        waveEvent.Add("current_wave", currentWave);
-        waveEvent.Add("highest_wave_reached", highestWave);
-        waveEvent.Add("total_deaths_accumulated", totalDeathCount);
-
-        // 🔹 Metric Logic
-        switch (metricType)
-        {
-            case "player_skill_progression":
-                waveEvent.Add("progression_wave", highestWave);
-                break;
-
-            case "failure_rate":
-                waveEvent.Add("deaths_in_this_wave", deathCountThisWave);
-                waveEvent.Add("time_until_death", timeValue);
-                break;
-
-            case "time_to_complete_rate":
-                waveEvent.Add("wave_completion_time", timeValue);
-                break;
-        }
+        summaryEvent.Add("Player_Skill_Progression", highestWave);
+        summaryEvent.Add("Time_to_Complete_Rate", Time.time);
+        summaryEvent.Add("Failure_Rate", totalDeathCount);
 
         try
         {
-            AnalyticsService.Instance.RecordEvent(waveEvent);
-            AnalyticsService.Instance.Flush(); // บังคับส่งทันที
-            Debug.Log($"<color=cyan>Analytics Success:</color> {metricType} | Total Deaths: {totalDeathCount}");
+            AnalyticsService.Instance.RecordEvent(summaryEvent);
+            AnalyticsService.Instance.Flush();
+            Debug.Log("<color=gold>Analytics Sent using your specific names!</color>");
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning("Analytics Record failed: " + e.Message);
+            Debug.LogWarning("Analytics Summary failed: " + e.Message);
         }
+    }
+    private void OnDisable()
+    {
+        if (Application.isEditor)
+        {
+            SendPlayerSummary();
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        SendPlayerSummary(); // ส่งข้อมูลเมื่อผู้เล่นปิดแอป/เลิกเล่น
     }
 
     public int GetCurrentWave()
