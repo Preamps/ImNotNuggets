@@ -148,6 +148,7 @@ public class WaveManager : MonoBehaviour
     {
         deathsInCurrentWave++;
         Debug.Log($"<color=red>Player Died!</color> Wave: {currentWave} | Deaths this wave: {deathsInCurrentWave}");
+        SendWaveAnalytics("Failed");
     }
 
     public void SendWaveAnalytics(string status)
