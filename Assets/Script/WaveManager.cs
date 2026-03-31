@@ -4,6 +4,7 @@ using TMPro;
 using Unity.Services.Analytics;
 using Unity.Services.Core;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WaveManager : MonoBehaviour
 {
@@ -27,6 +28,7 @@ public class WaveManager : MonoBehaviour
     private int deathsInCurrentWave = 0;
     private float waveStartTime = 0f;
     private bool waveActive = false;
+    private bool isRestarting = false;
     private List<GameObject> aliveEnemies = new List<GameObject>();
    
     private IEnumerator Start()
@@ -159,6 +161,15 @@ public class WaveManager : MonoBehaviour
         Debug.Log($"<color=red>Player Died!</color> Wave: {currentWave} | Deaths this wave: {deathsInCurrentWave}");
         
     }
+    public void RestartWave()
+    {
+        isRestarting = true;
+        // บันทึกจำนวนการตายที่เพิ่มขึ้นก่อนโหลดฉากใหม่
+        PlayerPrefs.SetInt("SavedDeathsCount", deathsInCurrentWave);
+        PlayerPrefs.Save();
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
 
     public void SendWaveAnalytics(string status)
     {
@@ -187,21 +198,11 @@ public class WaveManager : MonoBehaviour
             Debug.LogWarning("Analytics Error: " + e.Message);
         }
     }
-    private void OnApplicationQuit()
-    {
-        // ส่ง Analytics เฉพาะตอน "ออกเกม" (ปิด App)
-        if (waveActive)
-        {
-            SendWaveAnalytics("Player_Quit");
-        }
-    }
-
     private void OnDisable()
     {
-        // ส่ง Analytics เฉพาะตอน "กด Stop ใน Editor"
-        if (waveActive && Application.isEditor)
+        if (waveActive && !isRestarting && Application.isEditor)
         {
-            SendWaveAnalytics("Editor_Stop");
+            SendWaveAnalytics("Player_Quit");
         }
     }
 
