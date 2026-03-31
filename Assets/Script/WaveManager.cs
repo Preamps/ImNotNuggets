@@ -32,6 +32,7 @@ public class WaveManager : MonoBehaviour
     private IEnumerator Start()
     {
         // ตรวจว่าเป็น Start ใหม่ หรือ Restart
+        deathsInCurrentWave = 0;
         while (!InitUGS.IsInitialized)
         {
             yield return null;
@@ -54,6 +55,8 @@ public class WaveManager : MonoBehaviour
             // Restart → โหลด wave ล่าสุด
             int savedWave = WaveSaveManager.LoadWave(); // เช่น 5
             currentWave = savedWave - 1; // -1 เพราะ wave จะถูก ++ ใน StartNextWave()
+            
+            deathsInCurrentWave = PlayerPrefs.GetInt("SavedDeathsCount", 0);
         }
 
         StartCoroutine(StartNextWave());
@@ -66,7 +69,10 @@ public class WaveManager : MonoBehaviour
             waveActive = false;
 
             SendWaveAnalytics("Passed");
-
+            
+            deathsInCurrentWave = 0;
+            PlayerPrefs.SetInt("SavedDeathsCount", 0);
+            PlayerPrefs.Save();
             StartCoroutine(StartNextWave());
 
             if (SoundManager.Instance != null)
@@ -77,7 +83,7 @@ public class WaveManager : MonoBehaviour
     IEnumerator StartNextWave()
     {
         currentWave++;
-
+    
         if (currentWave > totalWaves)
         {
             Debug.Log("<color=cyan>★★★ VICTORY: ALL WAVES COMPLETED! ★★★</color>");
@@ -94,7 +100,6 @@ public class WaveManager : MonoBehaviour
             yield break; // จบการทำงาน ไม่ Spawn ศัตรูเพิ่ม
         }
 
-        deathsInCurrentWave = 0;
         WaveSaveManager.SaveWave(currentWave);
 
         // อัปเดตสถิติ Wave สูงสุด
@@ -147,8 +152,12 @@ public class WaveManager : MonoBehaviour
     public void RegisterDeath()
     {
         deathsInCurrentWave++;
+        // บันทึกลงเครื่องทันที เผื่อกด Restart Scene ค่ายังคงอยู่และนับต่อได้
+        
+        PlayerPrefs.SetInt("SavedDeathsCount", deathsInCurrentWave);
+        PlayerPrefs.Save();
         Debug.Log($"<color=red>Player Died!</color> Wave: {currentWave} | Deaths this wave: {deathsInCurrentWave}");
-        SendWaveAnalytics("Failed");
+        
     }
 
     public void SendWaveAnalytics(string status)
@@ -178,12 +187,20 @@ public class WaveManager : MonoBehaviour
             Debug.LogWarning("Analytics Error: " + e.Message);
         }
     }
+    private void OnApplicationQuit()
+    {
+        // ส่ง Analytics เฉพาะตอน "ออกเกม" (ปิด App)
+        if (waveActive)
+        {
+            SendWaveAnalytics("Player_Quit");
+        }
+    }
 
     private void OnDisable()
     {
+        // ส่ง Analytics เฉพาะตอน "กด Stop ใน Editor"
         if (waveActive && Application.isEditor)
         {
-            // ต้องใส่สถานะเข้าไปในวงเล็บด้วย ข้อมูลจะได้ไม่หายตอนกด Stop ใน Editor
             SendWaveAnalytics("Editor_Stop");
         }
     }
